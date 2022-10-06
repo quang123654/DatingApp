@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using API.Data;
+using API.Interfaces;
+using API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,7 +16,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using API.Extensions;
 
 namespace API
 {
@@ -34,12 +40,11 @@ namespace API
                 Phương thức ConfigureServices cho phép truy cập đến các dịch vụ, dependency được Inject vào
                 Webhost. Hoặc bạn cũng có thể đưa thêm các dependency tại đây.
             */
-            services.AddDbContext<DataContext>(options =>
-            {
-                options.UseSqlite(_config.GetConnectionString("DefaultConnection"));
-            });
+
+            services.AddApplicationServices(_config);
             services.AddControllers();
             services.AddCors();
+            services.AddIdentityService(_config);
             // services.AddSwaggerGen(c =>
             // {
             //     c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIv5", Version = "v1" });
@@ -64,6 +69,8 @@ namespace API
             app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod()
                 .WithOrigins("https://localhost:4200"));
 
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
